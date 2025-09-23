@@ -21,11 +21,12 @@ nav, section, footer, aside, article{
     margin: 1rem;
     border-radius: 10px;
     padding: 1rem;
+    text-align: justify;
 }
 
 article, aside{
-    width: 40%;
-    display: inline-block;
+    width: 20%;
+    display: inline-flex;
     height: 300px;
 }
 
