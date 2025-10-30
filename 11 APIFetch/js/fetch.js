@@ -107,6 +107,113 @@ const pokedex = () => {
     });
     };
 
+    //necesitamos una funcion para poder mapear las habilidades del pokemon y poder mostrarlas en su componente respectivo
+    const processPokemonAbilities = (pokemonData) => {
+        let pokemonAbilitiesContent = "";
+        pokemonData.abilities?.forEach((pokemonAbilityData) => {
+            pokemonAbilitiesContent += `<li> ${pokemonAbilityData.ability.name} </li>`;
+        });
+        containers.pokemonAbilitiesElement.innerHTML = pokemonAbilitiesContent;
+    };
 
+    //necesitamos una funcion para poder mapear los movimientos del pokemon y poder mostrarlas en su componente respectivo
+    const processPokemonMoves = (pokemonData) => {
+        let pokemonMovesContent = "";
+        pokemonData.moves?.forEach((pokemonMoveData) => {
+            pokemonMovesContent += `<li> ${pokemonMoveData.move.name} </li>`;
+        });
+        containers.pokemonMovesElement.innerHTML = pokemonMovesContent;
+
+    };
+
+    //necesito poner la imagen de cargando y que tambien se deshabiliten los botones
+    const setLoading = () => {
+        containers.imagenContainer.innerHTML = imageTemplate.replace("{imgSrc}", images.imgLoading);
+        buttons.all.forEach((button)=>{
+            button.disabled = true;
+        });
+    };
+
+    //necesito otra funcion que los habilite
+    const setLoadingComplete = () => {
+        buttons.all.forEach(button => checkDisabled(button));
+    };
+
+    //Vamos a crear una promesa, para poder obtener cada uno de los elementos de la pokedex, pero sin importar el orden, significa que cuando se realice la peticion, va a ser de tipo asyncrona eso significa que va a atender sin importar el orden de la transferencia de los paquetes los datos del request los va procesar y despues armar, para ello utilizaremos una función de tipo fetch la cual como argumento principal va a necesitar la url de la api y despues una serie de then para procesar los datos
+
+    const getPokemonData = async (pokemonName) => fetch(`${pokeApiURL}pokemon/${pokemonName}`, {
+        //Cualquier peticion fetch por default es de tipo GET, pero si queremos hacer otro tipo de peticiones tenemos que especificarlo en el segundo argumento. Pero cuando sea de una BD entonces ya podemos moficiar el tipo de metodo post, put, delete, etc
+        //Despues del metodo es necesario el tipo de encabezado, las cabeceras son necesarias para que el servidor entienda que tipo de datos le estamos enviando y que tipo de datos esperamos recibir
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        //si por ejemplo tiene elementos de formulario dentro del body, aqui se deben de incluir 
+        //body: JSON.stringify({}),
+    })
+    .then((res) => res.json()) //aqui estamos convirtiendo la respuesta en un objeto json
+    .catch((error) => ({requestFailed: true})); //en caso de que falle la peticion, devolvemos un objeto con una propiedad que indique que fallo la peticion
+
+    //necesitamos validar si se debe habilitar o deshabilitar los botones 
+    const checkDisabled = (button) => {
+        //para cuando exista un ID negativo
+        button.disabled = button.id === "btnDown" && containers.pokemonIdElement.value <= 1;
+    };
+
+    //la funcion que se encargue de ir armando los datos de la pokedex, entonces necesitamos validar ya sea el ID o el nombre del pokemon
+    const setPokemonData = async (pokemonName) => {
+        //validamos que no este vacio
+        if(pokemonName){
+            //poner la imagen de busqueda y deshabilitar los botones
+            setLoading();
+
+            //debo de armar la consulta para determinar el orden de los datos
+            const pokemonData = await getPokemonData(typeof pokemonName === "" ? pokemonName.toLowerCase() : pokemonName);
+            //validar si la peticion fallo
+            if(pokemonData.requestFailed){
+                containers.imagenContainer.innerHTML = imageTemplate.replace("{imgSrc}", images.imgPokemonNotFound);
+            }else{
+                //ponemos todos los elementos 
+                containers.imagenContainer.innerHTML = `${imageTemplate.replace("{imgSrc}", pokemonData.sprites.front_default)} ${imageTemplate.replace("{imgSrc}", pokemonData.sprites.front_shiny)}`;
+
+                containers.pokemonNameElement.innerHTML = pokemonData.name;
+                containers.pokemonIdElement.value = pokemonData.id;
+
+                //repartir los demas elementos
+                processPokemonType(pokemonData);
+                processPokemonStats(pokemonData);
+                processPokemonAbilities(pokemonData);
+                processPokemonMoves(pokemonData);
+            }
+            setLoadingComplete();
+        }else{
+            //cuando exista una alerrta o un error
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en tu busqueda',
+                text: 'Ingresa el nombre de un pokemon primero',
+                confirmButtonText: 'Aceptar'
+            });
+        }
+    }
+
+    //la ultima funcion se encarga de vincular todas las buquedas con los botones
+    const trigger = () => {
+        buttons.search.onclick = () => setPokemonData(pokemonInput.value);
+        //orientemos el evento
+        pokemonInput.onkeyup = (event) => {
+            event.preventDefault();
+            if(event.key === "Enter"){
+                setPokemonData(pokemonInput.value);
+            }
+        };
+        buttons.next.onclick = () => setPokemonData(containers.pokemonIdElement.value + 1);
+        buttons.previous.onclick = () => setPokemonData(containers.pokemonIdElement.value - 1);
+    };
+
+    setLoadingComplete();
+    trigger();
 
 };
+
+window.onload = pokedex;
