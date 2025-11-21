@@ -18,12 +18,12 @@
     </form>
 
     <ul>
-        <% estudiantes.forEach(function(estudiante) => { %>
+        <% estudiantes.forEach(function(estudiante){ %>
             <li><strong><%= estudiante.nombre %></strong> (Edad: <%= estudiante.edad %>, Curso: <%= estudiante.curso %>)
             <a href="/estudiantes/edit/<%= estudiante.id %>">Editar</a>
             <a href="/estudiantes/delete/<%= estudiante.id %>">Eliminar</a>
             </li>
-        <% }) %>
+        <% }); %>
     </ul>
     
 </body>
