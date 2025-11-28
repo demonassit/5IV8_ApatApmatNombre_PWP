@@ -1,7 +1,7 @@
 //necesitamos crear un crud de cursos
 
 //necesitamos es la conexion con la bd
-const dbConection = require('../database/db.js');
+//const dbConection = require('../database/db.js');
 
 //vamos a crear los endponits
  const getCursos = (req, res) => {
@@ -13,6 +13,7 @@ const dbConection = require('../database/db.js');
             } else {
                 res.status(200).json(results);  
             }
+            });
     }catch (error) {
         res.status(500).json({ message: 'Error del servidor' });
         console.log(error);
@@ -28,8 +29,15 @@ const dbConection = require('../database/db.js');
             } else {
                 res.status(200).json(results);  
             }
+            });
     }catch (error) {
         res.status(500).json({ message: 'Error del servidor' });
         console.log(error);
     }   
  }
+
+ module.exports = {
+    getCursos,
+    getCursosByid
+ }
+
